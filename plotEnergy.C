@@ -9,22 +9,26 @@ float ele_energy,mc_energy,sc_rawEnergy,mean;
 
 void plotEnergy()
 {
+ //-----Load trees-----//
  TFile*file = new TFile(fileLoc);
  TTree*tree = (TTree*)file->Get(treeName);
  TFile*fileFriend = new TFile(fileLocFriend);
  TTree*treeFriend = (TTree*)fileFriend->Get(treeNameFriend);
  tree->AddFriend(treeFriend);
  
+ //-----Define branches-----//
  TBranch*b_ele;
  TBranch*b_mc;
  TBranch*b_mean;
  TBranch*b_sc;
 
+ //-----Set branch addresses-----//
  tree->SetBranchAddress("ele",&ele_energy,&b_ele);
  tree->SetBranchAddress("mc",&mc_energy,&b_mc);
  tree->SetBranchAddress("mean",&mean,&b_mean);
  tree->SetBranchAddress("sc",&sc_rawEnergy,&b_sc);
 
+ //-----Define histograms-----//
  TH1D*hEleE = new TH1D("hEleE","",100,0,3750);
  hEleE->SetMarkerStyle(20);
  TH1D*hMCE = new TH1D("hMCE","",100,0,3000);
@@ -39,13 +43,17 @@ void plotEnergy()
 
  double eReg,eRes;
  Long64_t nentries = tree->GetEntries();
+ 
+ //-----Loop over events in tree-----//
  for(Long64_t i=0;i<nentries;i++){
   counter(i,nentries);
+  //-----Get entry from tree-----//
   tree->GetEntry(i);
 
   eReg = ele_energy*mean;
   eRes = mc_energy - eReg;
 
+  //-----Fill histograms from tree-----//
   hEleE->Fill(ele_energy);
   hMCE->Fill(mc_energy);
   hEreg->Fill(eReg);
@@ -55,11 +63,14 @@ void plotEnergy()
   hCorr->Fill(mean);
  }
 
+ //-----Make plots-----//
  TCanvas*canvas = new TCanvas("canvas","",0,0,1200,1000);
  canvas->SetGrid();
  tree->Draw("ele.energy");
  hEleE->Draw("PE,same");
+ canvas->SaveAs("/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/eleEnergyComparison.png");
 
+ //-----Save histograms-----//
  TFile*saveFile = new TFile("save.root","RECREATE");
  hEleE->Write();
  hMCE->Write();

@@ -1,15 +1,14 @@
-#include "/home/hep/wrtabb/git/DY-Analysis/headers/headerFunctions.h"
-#include "egRegTree.h"
-
-void histOptions(TH1D*hist);
+#include "Functions.h"
 
 const TString fileLoc = "/home/hep/wrtabb/input_trees/DoubleElectron_FlatPt-1To300_2017ConditionsFlatPU0to70_105X_mc2017_realistic_v5-v2_AODSIM_EgRegTreeV5Refined.root";
 const TString fileLocFriend = "/home/hep/wrtabb/EgRegresTrainerLegacy/resultsEleV5/regEleEcalTrk2017UL_RealIC_stdVar_stdCuts_ntrees1500_applied.root";
 const TString treeName = "egRegTree";
 const TString treeNameFriend = "egRegTreeFriend";
-//float ele_energy,mc_energy,mc_pt,sc_rawEnergy,mean;
-//float ele_energyErr,energy;
 float mean;
+
+const int energyBinLow = 0;
+const int energyBinHigh = 3750;
+const int nBinsEnergy = 100;
 
 void plotEnergy()
 {
@@ -38,13 +37,21 @@ void plotEnergy()
   trkChi2,trkNDof,ecalDrivenSeed,nrSatCrys,scRawEnergy,scRawESEnergy;
  };
 
- struct GenInfoStruct {
+ struct SCStruct {
+ float rawEnergy,rawESEnergy,etaWidth,phiWidth,seedClusEnergy,numberOfClusters,
+  numberOfSubClusters,clusterMaxDR,clusterMaxDRDPhi,clusterMaxDRDEta,clusterMaxDRRawEnergy,
+  corrEnergy,scEta,scPhi,seedEta,seedPhi,dEtaSeedSC,dPhiSeedSC,isEB,iEtaOrX,iPhiOrY,iEtaMod5,
+  iPhiMod2,iEtaMod20,iPhiMod20,etaGapCode,phiGapCode,nearbyChanStatus,corrEnergyAlt,
+  rawEnergyAlt,nrClusAlt,scSinTheta,seedSinTheta;
+ };
+
+ struct MCStruct {
   float energy,pt,eta,phi,pdgId,status,dR;
  };
  
  EleStruct eleObject;
- EleStruct scObject;
- GenInfoStruct  mcObject;
+ SCStruct scObject;
+ MCStruct  mcObject;
 
  //-----Define branches-----//
  TBranch*b_ele;
@@ -57,34 +64,29 @@ void plotEnergy()
  tree->SetBranchAddress("mc",&mcObject,&b_mc);
  tree->SetBranchAddress("mean",&mean,&b_mean);
  tree->SetBranchAddress("sc",&scObject,&b_sc);
-
+ 
  //-----Define histograms-----//
- TH1D*hEleE = new TH1D("hEleE","",100,0,3750);
- histOptions(hEleE);
- TH1D*hMCE = new TH1D("hMCE","",100,0,3000);
- histOptions(hMCE);
- TH1D*hEreg = new TH1D("hEreg","",100,0,3000);
- histOptions(hEreg);
- TH1D*hEres = new TH1D("hEres","",100,0,3000);
- histOptions(hEres);
- TH1D*hEresRestricted = new TH1D("hEresRestricted","",100,0,5);
- histOptions(hEresRestricted);
- TH1D*hSCE = new TH1D("hSCE","",300,0,3200);
- histOptions(hSCE);
- TH1D*hCorr = new TH1D("hCorr","",100,0.05,2.15);
- histOptions(hCorr);
+ TH1D*hEleE = new TH1D("hEleE","",nBinsEnergy,energyBinLow,energyBinHigh);
+ TH1D*hMCE = new TH1D("hMCE","",nBinsEnergy,energyBinLow,energyBinHigh);
+ TH1D*hEreg = new TH1D("hEreg","",nBinsEnergy,energyBinLow,energyBinHigh);
+ TH1D*hEres = new TH1D("hEres","",2*nBinsEnergy,-energyBinHigh,energyBinHigh);
+ TH1D*hEresRestricted = new TH1D("hEresRestricted","",200,-5,5);
+ TH1D*hSCE = new TH1D("hSCE","",nBinsEnergy,energyBinLow,energyBinHigh);
+ TH1D*hCorrection = new TH1D("hCorrection","",100,0,2.5);
+ TH1D*hTrueRawRatio = new TH1D("hTrueRawRatio","",100,0.6,2.0);
 
- double eReg,eRes;
+ double eReg,eRes,eRatio;
  Long64_t nentries = tree->GetEntries();
  
  //-----Loop over events in tree-----//
  for(Long64_t i=0;i<nentries;i++){
-  counter(i,nentries);
+  counter(i,nentries,"plotEgamma");
 
   //-----Get entry from tree-----//
   tree->GetEntry(i);
   eReg = eleObject.energy*mean;
   eRes = mcObject.energy - eReg;
+  eRatio = mcObject.energy/eleObject.energy;
 
   //-----Fill histograms from tree-----//
   hEleE->Fill(eleObject.energy);
@@ -92,16 +94,20 @@ void plotEnergy()
   hEreg->Fill(eReg);
   hEres->Fill(eRes);
   hEresRestricted->Fill(eRes);
-  hSCE->Fill(scObject.scRawEnergy);
-  hCorr->Fill(mean);
+  hSCE->Fill(scObject.rawEnergy);
+  hCorrection->Fill(mean);
+  hTrueRawRatio->Fill(eRatio);
  }
 
  //-----Make plots-----//
- TCanvas*canvas = new TCanvas("canvas","",0,0,1200,1000);
- canvas->SetGrid();
- tree->Draw("mc.energy");
- hMCE->Draw("pe,same");
- canvas->SaveAs("/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/mcEnergyComparison.png");
+ histDraw(hEleE,"eleEnergy","Electron energy");
+ histDraw(hMCE,"mcEnergy","MC energy");
+ histDraw(hEreg,"regEnergy","Corrected energy");
+ histDraw(hEres,"resEnergy","Energy residuals");
+ histDraw(hEresRestricted,"resEnergyRestrictedRange","Energy residuals");
+ histDraw(hSCE,"scEnergy","Supercluster raw energy");
+ histDraw(hCorrection,"correctionEnergy","Energy correction");
+ histDraw(hTrueRawRatio,"trueRawRatio","True to raw energy ratio",false,true);
 
  //-----Save histograms-----//
  TFile*saveFile = new TFile("save.root","RECREATE");
@@ -114,7 +120,3 @@ void plotEnergy()
  saveFile->Close();
 }//end plotEnergy
 
-void histOptions(TH1D*hist){
- hist->SetMarkerStyle(20);
- return;
-}

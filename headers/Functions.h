@@ -3,6 +3,7 @@ void profDraw(TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX=false,bool 
 void histDraw2D(TH2*hist,TString plotName,TString titleName,bool logX=false,bool logY=false,bool logZ=false);
 void counter(Long64_t i,Long64_t N,TString name);
 
+//-----Draw 1D histogram-----//
 void histDraw(TH1D*hist,TString plotName,TString titleName,bool logX,bool logY){
  TCanvas*canvas = new TCanvas("canvas","",0,0,1200,1000);
  canvas->SetGrid();
@@ -17,6 +18,7 @@ void histDraw(TH1D*hist,TString plotName,TString titleName,bool logX,bool logY){
  canvas->SaveAs(saveName);
 }
  
+//-----Draw the profile plot-----//
 void profDraw(TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX,bool logY){
  TLegend*legend = new TLegend(0.84,0.8,0.97,0.92);
   legend->SetTextSize(0.02);
@@ -38,6 +40,7 @@ void profDraw(TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX,bool logY){
  canvas->SaveAs(saveName);
 }
 
+//-----Draw 2D histogram-----//
 void histDraw2D(TH2*hist,TString plotName,TString titleName,bool logX,bool logY,bool logZ){
  TCanvas*canvas = new TCanvas("canvas","",0,0,1000,1000);
  canvas->SetLeftMargin(0.12);
@@ -73,6 +76,7 @@ void histDraw2D(TH2*hist,TString plotName,TString titleName,bool logX,bool logY,
  canvas->SaveAs(saveName);
 }
 
+//-----Counter for keeping track of progress-----//
 void counter(Long64_t i,Long64_t N,TString name)
 {
   int P = 100*(i)/(N);

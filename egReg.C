@@ -1,14 +1,18 @@
 #include "./headers/EgRegAnalyzer.h"
 #include "./headers/Functions.h"
+
 enum Step {
  STEP1,
  STEP2,
  STEP3,
  STEP4
 };
+
 void egReg()
 {
+ //-----Select step to investigate-----//
  Step nStep = STEP2;
+
  TString step;
  TString inputIC;
 
@@ -35,38 +39,40 @@ void egReg()
 
  //-----Initialize EgRegAnalyzaer Class-----//
  EgRegAnalyzer*egamma = new EgRegAnalyzer(step,inputIC);
- egamma->TurnOnBranches();
- Long64_t nentries = egamma->GetNEntries();
 
  gStyle->SetOptStat(0);
  gStyle->SetPalette(1);
+ //-----Define pt ranges for histograms-----//
  const int n = 3;
  double ptBreak1 = 100;
  double ptBreak2 = 200;
  TH2D*hERatioVsEta[n];
  TProfile*hERatioProfile[n];
- float eReg,eRes,eDiff,eTrueRawRatio,eCorrTrueRatio,eSCeleRatio,corr;
 
+ //-----Define titles and names for histograms-----//
  TString eRatioVsEtaTitle[n] = {
   "Corrected energy/True energy: p_{T} < 100",
   "Corrected energy/True energy: 100 < p_{T} < 200",
   "Corrected energy/True energy: 200 < p_{T}"
  };
-
  TString eRatioVsEtaName[n] = {
   "eRatioEta_0pT100_"+step+"_"+inputIC,
   "eRatioEta_100pT200_"+step+"_"+inputIC,
   "eRatioEta_200pTAndUp_"+step+"_"+inputIC,
  };
 
+ //-----Initialize histograms-----//
  for(int j=0;j<n;j++){
   hERatioVsEta[j] = new TH2D(eRatioVsEtaName[j],"",100,-3.5,3.5,100,0,5);
   hERatioVsEta[j]->GetYaxis()->SetTitle("E_{corr}/E_{True}");
   hERatioVsEta[j]->GetXaxis()->SetTitle("#eta");
  }
 
- float mcE,scE,eleE,pt,eta;
- 
+ float mcE,scE,eleE,pt,eta,corr;
+ float eReg,eRes,eDiff,eTrueRawRatio,eCorrTrueRatio,eSCeleRatio;
+ Long64_t nentries = egamma->GetNEntries();
+
+ //-----Begin loop over events-----//
  for(Long64_t i=0;i<nentries;i++){
   counter(i,nentries,"plotEgamma");
   egamma->GetEgEntry(i);

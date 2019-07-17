@@ -1,3 +1,4 @@
+//-----The locations of all .root files-----//
 
 TString baseResultsEle = "/home/hep/wrtabb/EgRegresTrainerLegacy/resultsEleV5/";
 

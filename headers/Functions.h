@@ -1,5 +1,5 @@
 void histDraw(TH1D*hist,TString plotName,TString titleName,bool logX=false,bool logY=false);
-void profDraw(TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX=false,bool logY=false);
+void profDraw(TString plotName,TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX=false,bool logY=false);
 void histDraw2D(TH2*hist,TString plotName,TString titleName,bool logX=false,bool logY=false,bool logZ=false);
 void counter(Long64_t i,Long64_t N,TString name);
 
@@ -19,7 +19,7 @@ void histDraw(TH1D*hist,TString plotName,TString titleName,bool logX,bool logY){
 }
  
 //-----Draw the profile plot-----//
-void profDraw(TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX,bool logY){
+void profDraw(TString plotName,TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX,bool logY){
  TLegend*legend = new TLegend(0.84,0.8,0.97,0.92);
   legend->SetTextSize(0.02);
   legend->AddEntry(hist1,"0 < p_{T} < 200");
@@ -35,7 +35,8 @@ void profDraw(TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX,bool logY){
  hist3->Draw("PEsame");
  legend->Draw("same");
  TString saveName = "/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/";
- saveName += "eRatioProfiles_v2";
+ saveName += "eRatioProfiles";
+ saveName += plotName;
  saveName += ".png";
  canvas->SaveAs(saveName);
 }

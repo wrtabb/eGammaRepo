@@ -11,7 +11,7 @@ enum Step {
 void egReg()
 {
  //-----Select step to investigate-----//
- Step nStep = STEP4;
+ Step nStep = STEP3;
 
  TString step;
  TString inputIC;
@@ -60,6 +60,7 @@ void egReg()
   "eRatioEta_100pT200_"+step+"_"+inputIC,
   "eRatioEta_200pTAndUp_"+step+"_"+inputIC,
  };
+ TString profName = "eRatioEta_profile_"+step+inputIC;
 
  //-----Initialize histograms-----//
  for(int j=0;j<n;j++){
@@ -68,7 +69,7 @@ void egReg()
   hERatioVsEta[j]->GetXaxis()->SetTitle("#eta");
  }
 
- float mcE,scE,eleE,pt,eta,corr;
+ float mcE,scE,eleE,pt,eta,corr,regIdealMean;
  float eReg,eRes,eDiff,eTrueRawRatio,eCorrTrueRatio,eSCeleRatio;
  Long64_t nentries = egamma->GetNEntries();
 
@@ -76,7 +77,7 @@ void egReg()
  for(Long64_t i=0;i<nentries;i++){
   counter(i,nentries,"plotEgamma");
   egamma->GetEgEntry(i);
-  egamma->GetParameters(mcE,scE,eleE,pt,eta,corr);
+  egamma->GetParameters(mcE,scE,eleE,pt,eta,corr,step);
  
   if(step=="step1"||step=="step3"){
    eReg = scE*corr;
@@ -84,8 +85,9 @@ void egReg()
   else if(step=="step4"){
    eReg = eleE*corr;
   }
-  else eReg = 0;
-
+  else if(step=="step2"){
+   eReg = 0;
+  }
   eDiff = mcE-eReg;
   eTrueRawRatio = mcE/scE;
   eCorrTrueRatio = eReg/mcE;
@@ -97,8 +99,6 @@ void egReg()
  }
 
  for(int i=0;i<n;i++){
-  TString profileName = eRatioVsEtaName[i];
-  profileName += "Prof";
   hERatioProfile[i] = (TProfile*)hERatioVsEta[i]->ProfileX();
   hERatioProfile[i]->SetMarkerStyle(20);
   if(i==0){
@@ -115,7 +115,7 @@ void egReg()
   }
   histDraw2D(hERatioVsEta[i],eRatioVsEtaName[i],eRatioVsEtaTitle[i],false,false,true);
  }
- profDraw(hERatioProfile[0],hERatioProfile[1],hERatioProfile[2]);
+ profDraw(profName,hERatioProfile[0],hERatioProfile[1],hERatioProfile[2]);
 
  TFile*saveFile = new TFile("save.root","RECREATE");
  for(int i=0;i<n;i++){

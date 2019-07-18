@@ -13,10 +13,12 @@ public:
  TString treeName = "egRegTree";
  TString treeNameFriend = "egRegTreeFriend";
 
- TTree*tree;
- TTree*treeFriend;
+ TTree*tree;//input trees
+ TTree*treeFriend;//result trees
+ TTree*treeFriend2;//additional result trees from step2, step3, step4
  TFile*file;
  TFile*fileFriend;
+
  struct EleStruct {
   float et,energy,energyErr,ecalEnergy,ecalEnergyErr,eta,phi,trkEtaMode,trkPhiMode,trkPMode,
   trkPModeErr,fbrem,corrMean,corrSigma,hademTow,hademCone,trkPInn,trkPtInn,trkPVtx,trkPOut,
@@ -47,6 +49,8 @@ public:
  float eta;
  float pt;
  float mean;
+ float regIdealMean;
+ float regRealSigma;
 
  //-----Constructor-----//
  EgRegAnalyzer(TString step,TString inputIC){
@@ -64,12 +68,12 @@ public:
    cout << "ERROR: no input settings!!!" << endl;
   }
 
-  LoadTree(fileLoc,fileLocFriend,treeName,treeNameFriend);
-  TurnOnBranches();
+  LoadTree(fileLoc,fileLocFriend,treeName,treeNameFriend,step);
+  TurnOnBranches(step);
  };
 
  //-----Load trees-----//
- void LoadTree(TString fileLoc,TString fileLocFriend,TString treeName,TString treeNameFriend){
+ void LoadTree(TString fileLoc,TString fileLocFriend,TString treeName,TString treeNameFriend,TString step){
   cout << "--------------------------------" << endl;
   cout << "Loading file: " << fileLoc << endl;
   cout << "Loading tree: " << treeName << endl;
@@ -79,22 +83,34 @@ public:
   cout << "Loading tree: " << treeNameFriend << endl;
   fileFriend = new TFile(fileLocFriend);
   treeFriend = (TTree*)fileFriend->Get(treeNameFriend);
-
   tree->AddFriend(treeFriend);
+  if(step=="step2"||step=="step3"){
+   treeFriend2 = (TTree*)fileFriend->Get(treeName);
+   tree->AddFriend(treeFriend2);
+  }
   cout << "--------------------------------" << endl;
  };
 
  //-----Initialize branches in tree-----//
- void TurnOnBranches(){
+ void TurnOnBranches(TString step){
   TBranch*b_ele;
   TBranch*b_mc;
   TBranch*b_mean;
   TBranch*b_sc;
+  TBranch*b_regIdealMean;
+  TBranch*b_regRealSigma;
 
   tree->SetBranchAddress("ele",&eleObject,&b_ele);
   tree->SetBranchAddress("mc",&mcObject,&b_mc);
   tree->SetBranchAddress("mean",&mean,&b_mean);
   tree->SetBranchAddress("sc",&scObject,&b_sc);
+  
+  if(step=="step2"||step=="step3"){
+   tree->SetBranchAddress("regIdealMean",&regIdealMean,&b_regIdealMean);
+  }
+  if(step=="step3"){
+   tree->SetBranchAddress("regRealSigma",&regRealSigma,&b_regRealSigma);
+  }
  }
 
  //-----Get number of entries in tree-----//
@@ -103,13 +119,14 @@ public:
  }
 
  //-----Get value of parameters for event-----//
- void GetParameters(float &eleE,float &mcE,float &scE,float &pt,float &eta,float &corr){
+ void GetParameters(float &eleE,float &mcE,float &scE,float &pt,float &eta,float &corr,TString step){
   eleE = eleObject.energy;
   mcE = mcObject.energy;
   pt = mcObject.pt;
   scE = scObject.rawEnergy + scObject.rawESEnergy;
   eta = mcObject.eta;
-  corr = mean;
+  if(step=="step2"||step=="step3") corr = regIdealMean;
+  else corr = mean;
  }
 
  //-----Get entry from tree-----//

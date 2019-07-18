@@ -11,7 +11,7 @@ enum Step {
 void egReg()
 {
  //-----Select step to investigate-----//
- Step nStep = STEP2;
+ Step nStep = STEP4;
 
  TString step;
  TString inputIC;
@@ -78,12 +78,15 @@ void egReg()
   egamma->GetEgEntry(i);
   egamma->GetParameters(mcE,scE,eleE,pt,eta,corr);
  
-  if(step=="step1"||step=="step2"){
+  if(step=="step1"||step=="step3"){
    eReg = scE*corr;
-   eDiff = mcE-eReg;
+  }
+  else if(step=="step4"){
+   eReg = eleE*corr;
   }
   else eReg = 0;
 
+  eDiff = mcE-eReg;
   eTrueRawRatio = mcE/scE;
   eCorrTrueRatio = eReg/mcE;
 

@@ -73,7 +73,7 @@ void histDraw2D(TH2*hist,TString plotName,TString titleName,bool logX,bool logY,
 
  TString saveName = "/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/";
  saveName += plotName;
- saveName += "_v2.png";
+ saveName += ".png";
  canvas->SaveAs(saveName);
 }
 

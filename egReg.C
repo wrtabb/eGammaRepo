@@ -11,7 +11,7 @@ enum Step {
 void egReg()
 {
  //-----Select step to investigate-----//
- Step nStep = STEP3;
+ Step nStep = STEP4;
 
  TString step;
  TString inputIC;
@@ -68,8 +68,9 @@ void egReg()
   hERatioVsEta[j]->GetYaxis()->SetTitle("E_{corr}/E_{True}");
   hERatioVsEta[j]->GetXaxis()->SetTitle("#eta");
  }
-
- float mcE,scE,eleE,pt,eta,corr,regIdealMean;
+ TH1D*hpt = new TH1D("hpt","",300,0,300);
+ hpt->SetMarkerStyle(20);
+ float mcE,scE,eleE,pt,eta,corr,realSigma,trkP,trkPErr;
  float eReg,eRes,eDiff,eTrueRawRatio,eCorrTrueRatio,eSCeleRatio;
  Long64_t nentries = egamma->GetNEntries();
 
@@ -77,30 +78,23 @@ void egReg()
  for(Long64_t i=0;i<nentries;i++){
   counter(i,nentries,"plotEgamma");
   egamma->GetEgEntry(i);
-  egamma->GetParameters(mcE,scE,eleE,pt,eta,corr,step);
- 
-  if(step=="step1"||step=="step3"){
-   eReg = scE*corr;
-  }
-  else if(step=="step4"){
-   eReg = eleE*corr;
-  }
-  else if(step=="step2"){
-   eReg = 0;
-  }
+  egamma->GetParameters(mcE,scE,eleE,pt,eta,corr,realSigma,step);
+  eReg = egamma->GetEReg(step); 
   eDiff = mcE-eReg;
   eTrueRawRatio = mcE/scE;
   eCorrTrueRatio = eReg/mcE;
+  hpt->Fill(pt);
 
   if(pt<ptBreak1) hERatioVsEta[0]->Fill(eta,eCorrTrueRatio);
   else if(pt>ptBreak1 && pt<ptBreak2)
    hERatioVsEta[1]->Fill(eta,eCorrTrueRatio);
   else hERatioVsEta[2]->Fill(eta,eCorrTrueRatio);
  }
-
+ histDraw(hpt,"pt","p_{T}");
  for(int i=0;i<n;i++){
   hERatioProfile[i] = (TProfile*)hERatioVsEta[i]->ProfileX();
   hERatioProfile[i]->SetMarkerStyle(20);
+  hERatioProfile[i]->GetYaxis()->SetTitle("E_{corr}/E_{true}");
   if(i==0){
    hERatioProfile[0]->SetMarkerColor(kRed+2);
    hERatioProfile[0]->SetLineColor(kRed+2);
@@ -125,3 +119,4 @@ void egReg()
 
  saveFile->Close();
 }
+

@@ -47,8 +47,11 @@ public:
  float mcE;
  float scE;
  float eta;
+ float trkP;
+ float trkPErr;
  float pt;
  float mean;
+ float realSigma;
  float regIdealMean;
  float regRealSigma;
 
@@ -84,7 +87,7 @@ public:
   fileFriend = new TFile(fileLocFriend);
   treeFriend = (TTree*)fileFriend->Get(treeNameFriend);
   tree->AddFriend(treeFriend);
-  if(step=="step2"||step=="step3"){
+  if(step!="step1"){
    treeFriend2 = (TTree*)fileFriend->Get(treeName);
    tree->AddFriend(treeFriend2);
   }
@@ -104,11 +107,10 @@ public:
   tree->SetBranchAddress("mc",&mcObject,&b_mc);
   tree->SetBranchAddress("mean",&mean,&b_mean);
   tree->SetBranchAddress("sc",&scObject,&b_sc);
-  
-  if(step=="step2"||step=="step3"){
+  if(step!="step1"){
    tree->SetBranchAddress("regIdealMean",&regIdealMean,&b_regIdealMean);
   }
-  if(step=="step3"){
+  if(step=="step3"||step=="step4"){
    tree->SetBranchAddress("regRealSigma",&regRealSigma,&b_regRealSigma);
   }
  }
@@ -119,14 +121,28 @@ public:
  }
 
  //-----Get value of parameters for event-----//
- void GetParameters(float &eleE,float &mcE,float &scE,float &pt,float &eta,float &corr,TString step){
+ void GetParameters(float &eleE,float &mcE,float &scE,float &pt,float &eta,float &corr,float &realSigma,TString step){
   eleE = eleObject.energy;
   mcE = mcObject.energy;
   pt = mcObject.pt;
   scE = scObject.rawEnergy + scObject.rawESEnergy;
   eta = mcObject.eta;
-  if(step=="step2"||step=="step3") corr = regIdealMean;
+  if(step!="step1") corr = regIdealMean;
   else corr = mean;
+  trkP = eleObject.trkPMode;
+  trkPErr = eleObject.trkPModeErr;
+  realSigma = regRealSigma;
+ }
+
+ //---Get value of eReg-----//
+ float GetEReg(TString step){
+  float eReg;
+  if(step=="step1"||step=="step3") 
+   eReg = regIdealMean*(scObject.rawEnergy+scObject.rawESEnergy);
+  else if(step=="step4")
+   eReg = (scE*regIdealMean*trkPErr*trkPErr+trkP*scE*scE*realSigma*realSigma)/(trkPErr*trkPErr+scE*scE*realSigma*realSigma);
+  else eReg = 0;
+  return eReg;
  }
 
  //-----Get entry from tree-----//

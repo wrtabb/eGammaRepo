@@ -11,7 +11,7 @@ enum Step {
 void egReg()
 {
  //-----Select step to investigate-----//
- Step nStep = STEP4;
+ Step nStep = STEP1;
 
  TString step;
  TString inputIC;
@@ -38,7 +38,7 @@ void egReg()
  }
 
  //-----Initialize EgRegAnalyzaer Class-----//
- EgRegAnalyzer*egamma = new EgRegAnalyzer(step,inputIC);
+ EgRegAnalyzer*egamma = new EgRegAnalyzer(step);
 
  gStyle->SetOptStat(0);
  gStyle->SetPalette(1);
@@ -56,11 +56,11 @@ void egReg()
   "Corrected energy/True energy: 200 < p_{T}"
  };
  TString eRatioVsEtaName[n] = {
-  "eRatioEta_0pT100_"+step+"_"+inputIC,
-  "eRatioEta_100pT200_"+step+"_"+inputIC,
-  "eRatioEta_200pTAndUp_"+step+"_"+inputIC,
+  "eRatioEta_0pT100_"+step,
+  "eRatioEta_100pT200_"+step,
+  "eRatioEta_200pTAndUp_"+step
  };
- TString profName = "eRatioEta_profile_"+step+inputIC;
+ TString profName = "eRatioEta_profile_"+step;
 
  //-----Initialize histograms-----//
  for(int j=0;j<n;j++){
@@ -68,8 +68,6 @@ void egReg()
   hERatioVsEta[j]->GetYaxis()->SetTitle("E_{corr}/E_{True}");
   hERatioVsEta[j]->GetXaxis()->SetTitle("#eta");
  }
- TH1D*hpt = new TH1D("hpt","",300,0,300);
- hpt->SetMarkerStyle(20);
  float mcE,scE,eleE,pt,eta,corr,realSigma,trkP,trkPErr;
  float eReg,eRes,eDiff,eTrueRawRatio,eCorrTrueRatio,eSCeleRatio;
  Long64_t nentries = egamma->GetNEntries();
@@ -80,17 +78,14 @@ void egReg()
   egamma->GetEgEntry(i);
   egamma->GetParameters(mcE,scE,eleE,pt,eta,corr,realSigma,step);
   eReg = egamma->GetEReg(step); 
-  eDiff = mcE-eReg;
-  eTrueRawRatio = mcE/scE;
   eCorrTrueRatio = eReg/mcE;
-  hpt->Fill(pt);
 
   if(pt<ptBreak1) hERatioVsEta[0]->Fill(eta,eCorrTrueRatio);
   else if(pt>ptBreak1 && pt<ptBreak2)
    hERatioVsEta[1]->Fill(eta,eCorrTrueRatio);
   else hERatioVsEta[2]->Fill(eta,eCorrTrueRatio);
  }
- histDraw(hpt,"pt","p_{T}");
+
  for(int i=0;i<n;i++){
   hERatioProfile[i] = (TProfile*)hERatioVsEta[i]->ProfileX();
   hERatioProfile[i]->SetMarkerStyle(20);

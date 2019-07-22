@@ -15,7 +15,6 @@ public:
 
  TTree*tree;//input trees
  TTree*treeFriend;//result trees
- TTree*treeFriend2;//additional result trees from step2, step3, step4
  TFile*file;
  TFile*fileFriend;
 
@@ -56,19 +55,25 @@ public:
  float regRealSigma;
 
  //-----Constructor-----//
- EgRegAnalyzer(TString step,TString inputIC){
-  if     (step=="step1") fileLocFriend = baseResultsEle+step1;
-  else if(step=="step2") fileLocFriend = baseResultsEle+step2;
-  else if(step=="step3") fileLocFriend = baseResultsEle+step3;
-  else if(step=="step4") fileLocFriend = baseResultsEle+step4;
+ EgRegAnalyzer(TString step){
+  if     (step=="step1"){
+   fileLocFriend = baseResultsEle+step1;
+   fileLoc = baseInputsEle+idealIC;
+  }
+  else if(step=="step2"){
+   fileLocFriend = baseResultsEle+step2;
+   fileLoc = fileLocFriend;
+  }
+  else if(step=="step3"){
+   fileLocFriend = baseResultsEle+step3;
+   fileLoc = fileLocFriend;
+  }
+  else if(step=="step4"){
+   fileLocFriend = baseResultsEle+step4;
+   fileLoc = baseInputsEle+realIC;
+  }
   else {
    cout << "ERROR: No step settings!!!" << endl;
-  }
-
-  if    (inputIC=="idealIC") fileLoc = baseInputsEle+idealIC;
-  else if(inputIC=="realIC") fileLoc = baseInputsEle+realIC;
-  else {
-   cout << "ERROR: no input settings!!!" << endl;
   }
 
   LoadTree(fileLoc,fileLocFriend,treeName,treeNameFriend,step);
@@ -84,13 +89,12 @@ public:
   tree = (TTree*)file->Get(treeName);
   cout << "Loading file: " << fileLocFriend << endl;
   cout << "Loading tree: " << treeNameFriend << endl;
-  fileFriend = new TFile(fileLocFriend);
-  treeFriend = (TTree*)fileFriend->Get(treeNameFriend);
-  tree->AddFriend(treeFriend);
-  if(step!="step1"){
-   treeFriend2 = (TTree*)fileFriend->Get(treeName);
-   tree->AddFriend(treeFriend2);
+  if(step=="step1"||step=="step4"){
+   fileFriend = new TFile(fileLocFriend);
+   treeFriend = (TTree*)fileFriend->Get(treeNameFriend);
   }
+  else treeFriend = (TTree*)file->Get(treeNameFriend);
+  tree->AddFriend(treeFriend);
   cout << "--------------------------------" << endl;
  };
 
@@ -107,10 +111,10 @@ public:
   tree->SetBranchAddress("mc",&mcObject,&b_mc);
   tree->SetBranchAddress("mean",&mean,&b_mean);
   tree->SetBranchAddress("sc",&scObject,&b_sc);
-  if(step!="step1"){
+  if(step=="step2"||step=="step3"){
    tree->SetBranchAddress("regIdealMean",&regIdealMean,&b_regIdealMean);
   }
-  if(step=="step3"||step=="step4"){
+  if(step=="step3"){
    tree->SetBranchAddress("regRealSigma",&regRealSigma,&b_regRealSigma);
   }
  }
@@ -136,12 +140,22 @@ public:
 
  //---Get value of eReg-----//
  float GetEReg(TString step){
+  float eleE = eleObject.energy;
+  float mcE = mcObject.energy;
+  float pt = mcObject.pt;
+  float scE = scObject.rawEnergy + scObject.rawESEnergy;
+  float eta = mcObject.eta;
+  float trkP = eleObject.trkPMode;
+  float trkPErr = eleObject.trkPModeErr;
   float eReg;
-  if(step=="step1"||step=="step3") 
-   eReg = regIdealMean*(scObject.rawEnergy+scObject.rawESEnergy);
+
+  if(step=="step2"||step=="step3") 
+   eReg = regIdealMean*scE;
+  else if(step=="step1")
+   eReg = mean*scE;
   else if(step=="step4")
-   eReg = (scE*regIdealMean*trkPErr*trkPErr+trkP*scE*scE*realSigma*realSigma)/(trkPErr*trkPErr+scE*scE*realSigma*realSigma);
-  else eReg = 0;
+   eReg = (scE*regIdealMean*trkPErr*trkPErr+trkP*scE*scE*regRealSigma*regRealSigma)/(trkPErr*trkPErr+scE*scE*regRealSigma*regRealSigma);
+  else eReg = -1000;
   return eReg;
  }
 

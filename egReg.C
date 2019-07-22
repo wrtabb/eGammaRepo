@@ -11,7 +11,7 @@ enum Step {
 void egReg()
 {
  //-----Select step to investigate-----//
- Step nStep = STEP1;
+ Step nStep = STEP4;
 
  TString step;
  TString inputIC;

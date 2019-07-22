@@ -131,7 +131,7 @@ public:
   pt = mcObject.pt;
   scE = scObject.rawEnergy + scObject.rawESEnergy;
   eta = mcObject.eta;
-  if(step!="step1") corr = regIdealMean;
+  if(step=="step2"||step=="step3") corr = regIdealMean;
   else corr = mean;
   trkP = eleObject.trkPMode;
   trkPErr = eleObject.trkPModeErr;
@@ -164,5 +164,4 @@ public:
   return tree->GetEntry(i);
  }
 };//end class
-
 

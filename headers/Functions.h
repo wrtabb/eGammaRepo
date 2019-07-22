@@ -22,7 +22,7 @@ void histDraw(TH1D*hist,TString plotName,TString titleName,bool logX,bool logY){
 void profDraw(TString plotName,TProfile*hist1,TProfile*hist2,TProfile*hist3,bool logX,bool logY){
  TLegend*legend = new TLegend(0.84,0.8,0.97,0.92);
   legend->SetTextSize(0.02);
-  legend->AddEntry(hist1,"0 < p_{T} < 200");
+  legend->AddEntry(hist1,"0 < p_{T} < 100");
   legend->AddEntry(hist2,"100 < p_{T} < 200");
   legend->AddEntry(hist3,"200 < p_{T}");
  TCanvas*canvas = new TCanvas("canvas","",0,0,1200,1000);

@@ -154,7 +154,7 @@ public:
   else if(step=="step1")
    eReg = mean*scE;
   else if(step=="step4")
-   eReg = (scE*regIdealMean*trkPErr*trkPErr+trkP*scE*scE*regRealSigma*regRealSigma)/(trkPErr*trkPErr+scE*scE*regRealSigma*regRealSigma);
+   eReg = mean*eleE;
   else eReg = -1000;
   return eReg;
  }

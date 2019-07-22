@@ -1,42 +1,24 @@
 #include "./headers/EgRegAnalyzer.h"
 #include "./headers/Functions.h"
 
-enum Step {
- STEP1,
- STEP2,
- STEP3,
- STEP4
-};
+void plotEReg(TString step);
 
 void egReg()
 {
- //-----Select step to investigate-----//
- Step nStep = STEP4;
+ for(int i=0;i<4;i++){
+  if(i==1) continue;//not plotting step2
+  cout << endl;
+  cout << "********************" << endl;
+  cout << "* Processing step" << i+1 << " *" << endl;
+  cout << "********************" << endl;
+  cout << endl;
+  TString step = "step";
+  step += i+1;
+  plotEReg(step);
+ }
+}
 
- TString step;
- TString inputIC;
-
- if(nStep == STEP1){
-  step = "step1";
-  inputIC = "idealIC";
- }
- else if(nStep == STEP2){
-  step = "step2";
-  inputIC = "realIC";
- }
- else if(nStep == STEP3){
-  step = "step3";
-  inputIC = "realIC";
- }
- else if(nStep == STEP4){
-  step = "step4";
-  inputIC = "realIC";
- }
- else {
-  cout << "No step selected!!!" << endl;
-  return;
- }
-
+void plotEReg(TString step){
  //-----Initialize EgRegAnalyzaer Class-----//
  EgRegAnalyzer*egamma = new EgRegAnalyzer(step);
 
@@ -74,7 +56,7 @@ void egReg()
 
  //-----Begin loop over events-----//
  for(Long64_t i=0;i<nentries;i++){
-  counter(i,nentries,"plotEgamma");
+  counter(i,nentries,step);
   egamma->GetEgEntry(i);
   egamma->GetParameters(mcE,scE,eleE,pt,eta,corr,realSigma,step);
   eReg = egamma->GetEReg(step); 
@@ -114,4 +96,3 @@ void egReg()
 
  saveFile->Close();
 }
-

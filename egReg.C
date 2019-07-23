@@ -93,6 +93,6 @@ void plotEReg(TString step){
   hERatioProfile[i]->Write();
   hERatioVsEta[i]->Write();
  }
-
  saveFile->Close();
+ egamma->DeleteTree();
 }

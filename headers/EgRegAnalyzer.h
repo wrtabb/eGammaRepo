@@ -163,5 +163,11 @@ public:
  Long64_t GetEgEntry(Long64_t i){
   return tree->GetEntry(i);
  }
+
+ //-----Delete tree-----//
+ void DeleteTree(){
+  tree->Delete();
+ }
 };//end class
+
 

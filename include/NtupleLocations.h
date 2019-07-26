@@ -1,6 +1,8 @@
 //////////////////////////////////////////////
 //-----The locations of all .root files-----//
 //////////////////////////////////////////////
+#ifndef NtupleLocations_H
+#define NtupleLocations_H
 
 //-----Location of input trees for EleReg-----//
 const TString baseInputsEle = "/home/hep/wrtabb/input_trees/";
@@ -14,4 +16,4 @@ const TString step2 = "regEleEcal2017UL_RealIC_IdealTraining_stdVar_stdCuts_ntre
 const TString step3 = "regEleEcal2017UL_RealIC_RealTraining_stdVar_stdCuts_ntrees1500_applied.root";
 const TString step4 = "regEleEcalTrk2017UL_RealIC_stdVar_stdCuts_ntrees1500_applied.root";
 
-
+#endif

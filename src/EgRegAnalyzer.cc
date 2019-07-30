@@ -1,7 +1,7 @@
-#include "EgRegAnalyzer.hh"
-#include "NtupleLocations.h"
+#include "/home/hep/wrtabb/Egamma/include/EgRegAnalyzer.hh"
+#include "/home/hep/wrtabb/Egamma/include/NtupleLocations.h"
 
-EgRegAnalyzer::EgRegAnalyzer(TString step,VarName var){
+EgRegAnalyzer::EgRegAnalyzer(TString step){
  if(step=="step1"){
   inputFile = baseInputsEle+idealIC;
   friendFile = baseResultsEle+step1;
@@ -52,62 +52,79 @@ void EgRegAnalyzer::InitBranches(TString step){
  tree->SetBranchAddress("invTar",&invTar,&b_invTar);
 }//end InitBranches
 
-void EgRegAnalyzer::GetPlots(TString step,VarName var){
- TString histTitle[nEtaRanges] = {
-  "0.0 < #lbar#eta#cbar < 0.8",
-  "0.8 < #lbar#eta#cbar < 1.5",
-  "1.5 < #lbar#eta#cbar < 2.0",
-  "2.0 < #lbar#eta#cbar < 2.5",
-  "2.5 < #lbar#eta#cbar < 3.0",
-  "3.0 < #lbar#eta#cbar < 3.5"
- };
- TString histName[nEtaRanges] = {
-  "hTar0eta08",
-  "hTar08eta15",
-  "hTar15eta20",
-  "hTar20eta25",
-  "hTar25eta30",
-  "hTar30eta35"
- };
- TString canvasName[nEtaRanges] = {
-  "cTar0eta08",
-  "cTar08eta15",
-  "cTar15eta20",
-  "cTar20eta25",
-  "cTar25eta30",
-  "cTar30eta35"
- };
+void EgRegAnalyzer::Get1DPlots(TString step,VarName var){
+ gROOT->SetBatch(true);
+ TString nub;
+ TString xAxisLabel;
+ TString drawStyle;
  int nBins;
  float lowBin,highBin;
- TString xAxisLabel;
+
  if(var==ENERGY_TARGET){
+  nub = "Tar";
   nBins = 50;
   lowBin = 0;
   highBin = 3.0;
   xAxisLabel = "E_{True}/E_{Corrected}";
- }//end if energy target
+  drawStyle = "PE";
+ }
+ if(var==ENERGY_CORRECTION){
+  nub = "Corr";
+  nBins = 50;
+  lowBin = 0;
+  highBin = 2.0;
+  xAxisLabel = "Energy correction";
+  drawStyle = "hist";
+ }
+
+ TString histTitle[nEtaRanges] = {
+  "0.0 < #cbar#eta#cbar < 0.8",
+  "0.8 < #cbar#eta#cbar < 1.5",
+  "1.5 < #cbar#eta#cbar < 2.0",
+  "2.0 < #cbar#eta#cbar < 2.5",
+  "2.5 < #cbar#eta#cbar"
+ };
+ TString histName[nEtaRanges] = {
+  "h"+nub+"0eta08",
+  "h"+nub+"08eta15",
+  "h"+nub+"15eta20",
+  "h"+nub+"20eta25",
+  "h"+nub+"25eta"
+ };
+ TString canvasName[nEtaRanges] = {
+  "c"+nub+"0eta08",
+  "c"+nub+"08eta15",
+  "c"+nub+"15eta20",
+  "c"+nub+"20eta25",
+  "c"+nub+"25eta"
+ };
 
  for(int i=0;i<nEtaRanges;i++){
   hist[i] = new TH1D(histName[i],"",nBins,lowBin,highBin);
   hist[i]->SetTitle(histTitle[i]);
   hist[i]->SetMarkerStyle(20);
+  hist[i]->SetFillColor(kYellow-2);
+  hist[i]->GetXaxis()->SetTitle(xAxisLabel);
   canvas[i] = new TCanvas(canvasName[i],"",0,0,1000,1000);
   canvas[i]->SetGrid();
-  canvas[i]->SetLogy();
+  if(var==ENERGY_TARGET) canvas[i]->SetLogy();
  }
 
  Long64_t nEntries = tree->GetEntries();
  for(Long64_t i=0;i<nEntries;i++){
-  counter(i,nEntries,step);
+  float fill = -9000;
+  counter(i,nEntries,step+"_"+nub);
   tree->GetEntry(i);
   eta = abs(mcObject.eta);
-  tar = 1.0/invTar;
-  if(eta < 0.8) hist[0]->Fill(tar);
-  if(eta >= 0.8 && eta < 1.5) hist[1]->Fill(tar);
-  if(eta >= 1.5 && eta < 2.0) hist[2]->Fill(tar);
-  if(eta >= 2.0 && eta < 2.5) hist[3]->Fill(tar);
-  if(eta >= 2.5 && eta < 3.0) hist[4]->Fill(tar);
-  if(eta >= 3.0 && eta < 3.5) hist[5]->Fill(tar);
+  if(var==ENERGY_TARGET) fill = 1/invTar;
+  else if(var==ENERGY_CORRECTION) fill = mean;
+  else cout << "ERROR: var not selected!" << endl;
+  if(fill<0) cout << "ERROR: Histogram fill is less than zero!" << endl;
+  if(eta < 0.8) hist[0]->Fill(fill);
+  else if(eta >= 0.8 && eta < 1.5) hist[1]->Fill(fill);
+  else if(eta >= 1.5 && eta < 2.0) hist[2]->Fill(fill);
+  else if(eta >= 2.0 && eta < 2.5) hist[3]->Fill(fill);
+  else if(eta >= 2.5) hist[4]->Fill(fill);
  }//end event loop
  
  for(int i=0;i<nEtaRanges;i++){
@@ -116,10 +133,10 @@ void EgRegAnalyzer::GetPlots(TString step,VarName var){
   saveName += "_"+step;
   saveName += ".png";
   canvas[i]->cd();
-  hist[i]->Draw("PE");
+  hist[i]->Draw(drawStyle);
   canvas[i]->SaveAs(saveName);
  }
-}//end GetPlots
+}//end GetTargetPlots
 
 void EgRegAnalyzer::counter(Long64_t i,Long64_t N,TString name)
 {

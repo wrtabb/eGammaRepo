@@ -8,6 +8,7 @@
 #include <TCanvas.h>
 #include <TTimeStamp.h>
 #include <TSystem.h>
+#include <TROOT.h>
 
 using namespace std;
 
@@ -20,7 +21,7 @@ class EgRegAnalyzer
 {
 public:
 
- EgRegAnalyzer(TString step,VarName var);
+ EgRegAnalyzer(TString step);
 
  TString inputFile;
  TString friendFile;
@@ -42,13 +43,12 @@ public:
  float pt;
  float mean;
  float invTar;
- float tar;
  float realSigma;
  float regIdealMean;
  float regIdealSigma;
  float regRealSigma;
  float regRealMean;
- const static int nEtaRanges = 6;
+ const static int nEtaRanges = 5;
 
  TH1D*hist[nEtaRanges];
  TCanvas*canvas[nEtaRanges];
@@ -84,7 +84,7 @@ public:
 
  void LoadTree();
  void InitBranches(TString step);
- void GetPlots(TString step,VarName var);  
+ void Get1DPlots(TString step,VarName var);  
  void counter(Long64_t i,Long64_t N,TString name);
 };
 

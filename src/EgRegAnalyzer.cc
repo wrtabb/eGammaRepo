@@ -112,14 +112,13 @@ void EgRegAnalyzer::Get1DPlots(TString step,VarName var){
 
  Long64_t nEntries = tree->GetEntries();
  for(Long64_t i=0;i<nEntries;i++){
-  float fill = -9000;
+  float fill;
   counter(i,nEntries,step+"_"+nub);
   tree->GetEntry(i);
   eta = abs(mcObject.eta);
   if(var==ENERGY_TARGET) fill = 1/invTar;
   else if(var==ENERGY_CORRECTION) fill = mean;
   else cout << "ERROR: var not selected!" << endl;
-  if(fill<0) cout << "ERROR: Histogram fill is less than zero!" << endl;
   if(eta < 0.8) hist[0]->Fill(fill);
   else if(eta >= 0.8 && eta < 1.5) hist[1]->Fill(fill);
   else if(eta >= 1.5 && eta < 2.0) hist[2]->Fill(fill);

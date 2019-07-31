@@ -9,12 +9,17 @@
 #include <TTimeStamp.h>
 #include <TSystem.h>
 #include <TROOT.h>
+#include <TLegend.h>
 
 using namespace std;
 
 enum VarName {
+ NONE,
  ENERGY_CORRECTION,
  ENERGY_TARGET,
+ ENERGY_TARGET_INV,
+ ENERGY_TARGET_CORR,
+ ENERGY_TARGET_CORR_INV
 };
 
 class EgRegAnalyzer
@@ -27,6 +32,8 @@ public:
  TString friendFile;
  TString treeName = "egRegTree";
  TString treeNameFriend = "egRegTreeFriend";
+ TString plotLocation = "/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/";
+ TString saveFileName = "/home/hep/wrtabb/Egamma/data/saveData.root";
 
  TTree*tree;
  TTree*treeFriend;
@@ -83,9 +90,10 @@ public:
  SSFULLStruct ssObject;
 
  void LoadTree();
- void InitBranches(TString step);
+ void InitBranches();
  void Get1DPlots(TString step,VarName var);  
  void counter(Long64_t i,Long64_t N,TString name);
+ void PlotCruijff(TString step);
 };
 
 #endif

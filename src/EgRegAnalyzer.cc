@@ -19,13 +19,6 @@ EgRegAnalyzer::EgRegAnalyzer(TString step){
   return;
  }
 
- LoadTree();
- InitBranches();
- cout << "Trees loaded from files: " << endl;
- cout << inputFile << endl;
- cout << "Number of entries: " << tree->GetEntries() << endl; 
- cout << friendFile << endl;
- cout << "Number of entries: " << treeFriend->GetEntries() << endl; 
 }//end constructor
 
 //-----Load trees-----//
@@ -35,6 +28,12 @@ void EgRegAnalyzer::LoadTree(){
  tree = (TTree*)file->Get(treeName);
  treeFriend = (TTree*)fileFriend->Get(treeNameFriend);
  tree->AddFriend(treeFriend);
+
+ cout << "Trees loaded from files: " << endl;
+ cout << inputFile << endl;
+ cout << "Number of entries: " << tree->GetEntries() << endl; 
+ cout << friendFile << endl;
+ cout << "Number of entries: " << treeFriend->GetEntries() << endl; 
 }//end LoadTree
 
 //-----Initialize branches-----//
@@ -62,51 +61,23 @@ void EgRegAnalyzer::Get1DPlots(TString step,VarName var){
  }
  gROOT->SetBatch(true);
  TString nub;
- TString xAxisLabel;
  TString drawStyle;
+ TString xAxisLabel;
  int nBins;
- float lowBin = 0;
- float highBin = 0;
+ float lowBin = 0.0;
+ float highBin = 2.00;
 
- if(var==ENERGY_TARGET){
-  nub = "Tar";
-  nBins = 50;
-  lowBin = 0;
-  highBin = 3.0;
-  xAxisLabel = "E_{True}/E_{Raw}";
-  drawStyle = "PE";
- }
- else if(var==ENERGY_TARGET_INV){
+ if(var==ENERGY_TARGET_INV){
   nub = "InvTar";
-  nBins = 50;
-  lowBin = 0;
-  highBin = 3.0;
+  nBins = 200;
+  drawStyle = "PE";
   xAxisLabel = "E_{Raw}/E_{True}";
-  drawStyle = "PE";
- }
- else if(var==ENERGY_CORRECTION){
-  nub = "Corr";
-  nBins = 50;
-  lowBin = 0;
-  highBin = 2.0;
-  xAxisLabel = "Energy correction";
-  drawStyle = "hist";
- }
- else if(var==ENERGY_TARGET_CORR){
-  nub = "TarCorr";
-  nBins = 50;
-  lowBin = 0;
-  highBin = 3.0;
-  xAxisLabel = "E_{True}/E_{Corrected}";
-  drawStyle = "PE";
  }
  else if(var==ENERGY_TARGET_CORR_INV){
   nub = "InvTarCorr";
-  nBins = 50;
-  lowBin = 0;
-  highBin = 3.0;
-  xAxisLabel = "E_{Corrected}/E_{True}";
+  nBins = 200;
   drawStyle = "PE";
+  xAxisLabel = "E_{Raw}/E_{True}";
  }
  else {
   cout << "Var not set!" << endl;
@@ -119,14 +90,14 @@ void EgRegAnalyzer::Get1DPlots(TString step,VarName var){
   "2.5 < #cbar#eta#cbar"
  };
  TString histName[nEtaRanges] = {
-  "h"+nub+"_"+step+"_0eta08",
+  "h"+nub+"_"+step+"_00eta08",
   "h"+nub+"_"+step+"_08eta15",
   "h"+nub+"_"+step+"_15eta20",
   "h"+nub+"_"+step+"_20eta25",
   "h"+nub+"_"+step+"_25eta"
  };
  TString canvasName[nEtaRanges] = {
-  "c"+nub+"_"+step+"_0eta08",
+  "c"+nub+"_"+step+"_00eta08",
   "c"+nub+"_"+step+"_08eta15",
   "c"+nub+"_"+step+"_15eta20",
   "c"+nub+"_"+step+"_20eta25",
@@ -137,11 +108,10 @@ void EgRegAnalyzer::Get1DPlots(TString step,VarName var){
   hist[i] = new TH1D(histName[i],"",nBins,lowBin,highBin);
   hist[i]->SetTitle(histTitle[i]);
   hist[i]->SetMarkerStyle(20);
-  hist[i]->SetFillColor(kYellow-2);
   hist[i]->GetXaxis()->SetTitle(xAxisLabel);
   canvas[i] = new TCanvas(canvasName[i],"",0,0,1000,1000);
   canvas[i]->SetGrid();
-  if(var!=ENERGY_CORRECTION) canvas[i]->SetLogy();
+  canvas[i]->SetLogy();
  }
 
  Long64_t nEntries = tree->GetEntries();
@@ -150,10 +120,7 @@ void EgRegAnalyzer::Get1DPlots(TString step,VarName var){
   counter(i,nEntries,step+"_"+nub);
   tree->GetEntry(i);
   eta = abs(mcObject.eta);
-  if     (var==ENERGY_TARGET)          fill = 1/invTar;
-  else if(var==ENERGY_TARGET_INV)      fill = invTar;
-  else if(var==ENERGY_CORRECTION)      fill = mean;
-  else if(var==ENERGY_TARGET_CORR)     fill = 1/(invTar*mean);
+  if(var==ENERGY_TARGET_INV)      fill = invTar;
   else if(var==ENERGY_TARGET_CORR_INV) fill = invTar*mean;
   else cout << "ERROR: var not selected!" << endl;
   if(eta < 0.8) hist[0]->Fill(fill);
@@ -176,46 +143,39 @@ void EgRegAnalyzer::Get1DPlots(TString step,VarName var){
  saveFile->Close();
 }//end GetTargetPlots
 
-//-----Plotting invTar to fit with Cruijff function-----//
-void EgRegAnalyzer::PlotCruijff(TString step){
- TH1D*hInvTarget = new TH1D("hInvTarget","",50,0.65,1.10);
- TH1D*hInvTargetCorrected = new TH1D("hInvTargetCorrected","",50,0.65,1.10);
- hInvTargetCorrected->SetMarkerStyle(20);
- Long64_t nEntries = tree->GetEntries();
- float rawE,mcE;
- for(Long64_t i=0;i<nEntries;i++){
-  float fill = -9999;
-  counter(i,nEntries,"CruijffPlotter_"+step);
-  tree->GetEntry(i);
-  eta = abs(mcObject.eta);
-  rawE = (scObject.rawEnergy+scObject.rawESEnergy);
-  mcE = mcObject.energy;
-  if(eta>1.44) continue;
-  hInvTarget->Fill(invTar);
-  hInvTargetCorrected->Fill(invTar/mean);  
- }
+//-----Plot target and target/correction together
+void EgRegAnalyzer::PlotTarAndCorrected(TString step,TString histName1,TString histName2){
+ gROOT->SetBatch(true);
+ gStyle->SetOptStat(0);
+ TFile*inFile = new TFile(saveFileName);
+ TH1D*hist1 = (TH1D*)inFile->Get(histName1);
+ TH1D*hist2 = (TH1D*)inFile->Get(histName2);
+ hist1->SetFillColor(kWhite);
+ hist2->SetFillColor(kWhite);
+ hist1->SetMarkerStyle(25);
+ hist2->SetMarkerStyle(20);
+ hist1->SetMarkerColor(kRed);
+ hist2->SetMarkerColor(kBlue);
+ TLegend*legend = new TLegend(0.1,0.8,0.3,0.9);
+ legend->AddEntry(hist1,"invTarget");
+ legend->AddEntry(hist2,"invTargetCorrected");
+
  TCanvas*canvas = new TCanvas("canvas","",0,0,1200,1000);
  canvas->SetGrid();
- TLegend*legend = new TLegend(0,0.9,0.2,1);
- legend->AddEntry(hInvTarget,"Inverse target");
- legend->AddEntry(hInvTargetCorrected,"1/(target*correction)");
- hInvTarget->Draw("hist");
- hInvTargetCorrected->Draw("pe,same");
+ canvas->SetLogy();
+ hist1->Draw("pe");
+ hist2->Draw("pe,same");
  legend->Draw("same");
- TString saveName = plotLocation;
- saveName += "targetPlots_"+step+".png";
- canvas->SaveAs(saveName);
+ canvas->SaveAs(plotLocation+histName1+"_"+histName2+".png");
 }
-
 //-----Counter for keeping track of progress-----//
 void EgRegAnalyzer::counter(Long64_t i,Long64_t N,TString name)
 {
-  int P = 100*(i)/(N);
-  TTimeStamp eventTimeStamp;
-  if(i%(N/100)==0) {
-    cout << name << ": [Time: " << eventTimeStamp.AsString("s") << "] " << P
-      << "%" << endl;
-  }
-  return;
+ int P = 100*(i)/(N);
+ TTimeStamp eventTimeStamp;
+ if(i%(N/100)==0) {
+  cout << name << ": [Time: " << eventTimeStamp.AsString("s") << "] " << P << "%" << endl;
+ }
+ return;
 }
 

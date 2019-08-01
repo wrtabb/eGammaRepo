@@ -2,23 +2,23 @@
 #define EgRegAnalyzer_HH
 #include <TTree.h>
 #include <TFile.h>
+#include <TF1.h>
 #include <TString.h>
 #include <iostream>
+#include <fstream>
 #include <TH1D.h>
 #include <TCanvas.h>
 #include <TTimeStamp.h>
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TLegend.h>
+#include <TStyle.h>
 
 using namespace std;
 
 enum VarName {
  NONE,
- ENERGY_CORRECTION,
- ENERGY_TARGET,
  ENERGY_TARGET_INV,
- ENERGY_TARGET_CORR,
  ENERGY_TARGET_CORR_INV
 };
 
@@ -27,7 +27,6 @@ class EgRegAnalyzer
 public:
 
  EgRegAnalyzer(TString step);
-
  TString inputFile;
  TString friendFile;
  TString treeName = "egRegTree";
@@ -92,8 +91,9 @@ public:
  void LoadTree();
  void InitBranches();
  void Get1DPlots(TString step,VarName var);  
+ void PlotTarAndCorrected(TString step,TString histName1,TString histName2);
+ void GetFit(TString func);
  void counter(Long64_t i,Long64_t N,TString name);
- void PlotCruijff(TString step);
 };
 
 #endif

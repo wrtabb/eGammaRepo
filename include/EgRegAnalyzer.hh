@@ -1,3 +1,5 @@
+#include "VariableHandler.hh"
+
 #ifndef EgRegAnalyzer_HH
 #define EgRegAnalyzer_HH
 #include <TTree.h>
@@ -15,12 +17,6 @@
 #include <TStyle.h>
 
 using namespace std;
-
-enum VarName {
- NONE,
- ENERGY_TARGET_INV,
- ENERGY_TARGET_CORR_INV
-};
 
 class EgRegAnalyzer
 {
@@ -90,9 +86,7 @@ public:
 
  void LoadTree();
  void InitBranches();
- void Get1DPlots(TString step,VarName var);  
- void PlotTarAndCorrected(TString step,TString histName1,TString histName2);
- void GetFit(TString func);
+ void Plot1DHist(VarType var);
  void counter(Long64_t i,Long64_t N,TString name);
 };
 

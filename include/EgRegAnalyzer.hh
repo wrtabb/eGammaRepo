@@ -86,7 +86,7 @@ public:
 
  void LoadTree();
  void InitBranches();
- void Plot1DHist(VarType var);
+ void Plot1DHist(VarType var,TString step,TString saveAddendum);
  void counter(Long64_t i,Long64_t N,TString name);
 };
 

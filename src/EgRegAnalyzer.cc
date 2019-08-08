@@ -54,19 +54,22 @@ void EgRegAnalyzer::InitBranches(){
  tree->SetBranchAddress("invTar",&invTar,&b_invTar);
 }//end InitBranches
 
-void EgRegAnalyzer::Plot1DHist(VarType var)
+//-----Plot 1-dimensional histogram-----//
+void EgRegAnalyzer::Plot1DHist(VarType var,TString step,TString saveAddendum = "")
 {
  gStyle->SetOptStat(0);
  VariableHandler*variable = new VariableHandler(var);
  std::vector<float> vec = variable->GetRangeLimits();
  int nBins = variable->GetNRanges();
  float range[nBins];
+ TString xAxisTitle = variable->GetVarTitle();
+
  for(int i=0;i<=nBins;i++){
   range[i] = vec.at(i);
  }
  TH1D*hist = new TH1D("hist","",nBins,range);
  hist->SetMarkerStyle(20);
- 
+ hist->GetXaxis()->SetTitle(xAxisTitle);
  Long64_t nEvents = tree->GetEntries();
  double fill; 
  for(Long64_t j=0;j<nEvents;j++){
@@ -86,6 +89,14 @@ void EgRegAnalyzer::Plot1DHist(VarType var)
  TCanvas*canvas = new TCanvas("canvas","",0,0,1000,1000);
  canvas->SetGrid();
  hist->Draw("pe");
+ TString saveName = "/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/";
+ saveName += variable->GetVarName();
+ saveName += saveAddendum;
+ saveName += "_"+step;
+ saveName += ".png";
+ canvas->SaveAs(saveName);
+ delete canvas;
+ delete hist;
 }
 
 //-----Counter for keeping track of progress-----//

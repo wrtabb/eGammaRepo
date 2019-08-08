@@ -11,8 +11,8 @@ const TString VariableHandler::varLatexNames[] = {
  "undefined",
  "#eta",
  "#cbar#eta#cbar",
- "invTar",
- "invTarCorr"
+ "E_{raw}/E_{true}",
+ "corrected E_{raw}/E_{true}"
 };
 
 VariableHandler::VariableHandler(VarType varType)

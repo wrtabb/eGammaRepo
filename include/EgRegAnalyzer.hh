@@ -9,6 +9,9 @@
 #include <iostream>
 #include <fstream>
 #include <TH1D.h>
+#include <TH2D.h>
+#include <TProfile.h>
+#include <TPaletteAxis.h>
 #include <TCanvas.h>
 #include <TTimeStamp.h>
 #include <TSystem.h>
@@ -87,6 +90,7 @@ public:
  void LoadTree();
  void InitBranches();
  void Plot1DHist(VarType var,TString step,TString saveAddendum);
+ void Plot2DHist(VarType varX,VarType varY,TString step);
  void counter(Long64_t i,Long64_t N,TString name);
 };
 

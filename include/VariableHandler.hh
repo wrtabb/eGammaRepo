@@ -7,7 +7,9 @@ enum VarType{
  ETA,
  ABS_ETA,
  INV_TAR,
- INV_TAR_CORR
+ INV_TAR_CORR,
+ MEAN,
+ SIGMA
 };
 
 class VariableHandler

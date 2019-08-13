@@ -26,6 +26,14 @@ class EgRegAnalyzer
 public:
 
  EgRegAnalyzer(TString step);
+ std::vector<VariableHandler*> varHandlers;
+
+ void Plot1DHist(VarType var,TString step);
+ void Plot2DHist(VarType varX,VarType varY,TString step);
+ void AddHandler(VariableHandler*handler);
+ 
+private:
+ 
  TString inputFile;
  TString friendFile;
  TString treeName = "egRegTree";
@@ -55,12 +63,6 @@ public:
  float regRealSigma;
  float regRealMean;
 
- void Plot1DHist(VarType var,TString step);
- void Plot2DHist(VarType varX,VarType varY,TString step);
- void counter(Long64_t i,Long64_t N,TString name);
- bool CheckStatus(TFile*file,TFile*fileFriend,TTree*tree,TTree*treeFriend);
- 
-private:
  struct EleStruct {
   float et,energy,energyErr,ecalEnergy,ecalEnergyErr,eta,phi,trkEtaMode,trkPhiMode,trkPMode,
   trkPModeErr,fbrem,corrMean,corrSigma,hademTow,hademCone,trkPInn,trkPtInn,trkPVtx,trkPOut,
@@ -92,7 +94,8 @@ private:
 
  void LoadTree();
  void InitBranches();
-
+ void counter(Long64_t i,Long64_t N,TString name);
+ bool CheckStatus(TFile*file,TFile*fileFriend,TTree*tree,TTree*treeFriend);
 };
 
 #endif

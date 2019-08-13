@@ -59,13 +59,8 @@ void EgRegAnalyzer::InitBranches(){
  tree->SetBranchAddress("invTar",&invTar,&b_invTar);
 }//end InitBranches
 
-//-----Plot 1-dimensional histogram-----//
 void EgRegAnalyzer::Plot1DHist(VarType var,TString step)
 {
- if(!CheckStatus(file,fileFriend,tree,treeFriend)){
-  cout << "Files and/or trees not loaded" << endl;
-  return;
- }
  gStyle->SetOptStat(0);
  VariableHandler*variable = new VariableHandler(var);
  std::vector<float> vec = variable->GetRangeLimits();
@@ -81,6 +76,7 @@ void EgRegAnalyzer::Plot1DHist(VarType var,TString step)
  hist->GetXaxis()->SetTitle(xAxisTitle);
  Long64_t nEvents = tree->GetEntries();
  double fill; 
+ 
  for(Long64_t j=0;j<nEvents;j++){
   counter(j,nEvents,"Loading events");
   tree->GetEntry(j);         
@@ -205,6 +201,11 @@ void EgRegAnalyzer::Plot2DHist(VarType varX,VarType varY,TString step)
  saveProf += variableY->GetVarName() + "_" + step;
  saveProf += ".png";
  canvas2->SaveAs(saveProf);
+ 
+ delete canvas2;
+ delete canvas;
+ delete hist;
+ delete profile;
 }
 
 //-----Counter for keeping track of progress-----//
@@ -246,4 +247,10 @@ bool EgRegAnalyzer::CheckStatus(TFile*file,TFile*fileFriend,TTree*tree,TTree*tre
   status = false;
  }
  return status;
+}
+
+void EgRegAnalyzer::AddHandler(VariableHandler*handler)
+{
+ varHandlers.push_back(handler);
+ varHandlers;
 }

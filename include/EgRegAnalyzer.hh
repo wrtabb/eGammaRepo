@@ -30,7 +30,7 @@ public:
  TString friendFile;
  TString treeName = "egRegTree";
  TString treeNameFriend = "egRegTreeFriend";
- TString plotLocation = "/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/";
+ TString plotLocation = "/home/hep/wrtabb/plots/Egamma/";
  TString saveFileName = "/home/hep/wrtabb/Egamma/data/saveData.root";
 
  TTree*tree;
@@ -47,16 +47,13 @@ public:
  float trkPErr;
  float pt;
  float mean;
+ float sigma;
  float invTar;
  float realSigma;
  float regIdealMean;
  float regIdealSigma;
  float regRealSigma;
  float regRealMean;
- const static int nEtaRanges = 5;
-
- TH1D*hist[nEtaRanges];
- TCanvas*canvas[nEtaRanges];
 
  struct EleStruct {
   float et,energy,energyErr,ecalEnergy,ecalEnergyErr,eta,phi,trkEtaMode,trkPhiMode,trkPMode,
@@ -89,9 +86,10 @@ public:
 
  void LoadTree();
  void InitBranches();
- void Plot1DHist(VarType var,TString step,TString saveAddendum);
+ void Plot1DHist(VarType var,TString step);
  void Plot2DHist(VarType varX,VarType varY,TString step);
  void counter(Long64_t i,Long64_t N,TString name);
+ bool CheckStatus(TFile*file,TFile*fileFriend,TTree*tree,TTree*treeFriend);
 };
 
 #endif

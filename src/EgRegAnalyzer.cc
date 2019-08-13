@@ -1,6 +1,6 @@
-#include "EgRegAnalyzer.hh"
-#include "VariableHandler.hh"
-#include "NtupleLocations.h"
+#include "../include/EgRegAnalyzer.hh"
+#include "../include/VariableHandler.hh"
+#include "../include/NtupleLocations.h"
 
 EgRegAnalyzer::EgRegAnalyzer(TString step){
  if(step=="step1"){
@@ -20,6 +20,7 @@ EgRegAnalyzer::EgRegAnalyzer(TString step){
   return;
  }
 
+ LoadTree();
 }//end constructor
 
 //-----Load trees-----//
@@ -30,6 +31,8 @@ void EgRegAnalyzer::LoadTree(){
  treeFriend = (TTree*)fileFriend->Get(treeNameFriend);
  tree->AddFriend(treeFriend);
 
+ InitBranches();
+ CheckStatus(file,fileFriend,tree,treeFriend);
  cout << "Trees loaded from files: " << endl;
  cout << inputFile << endl;
  cout << "Number of entries: " << tree->GetEntries() << endl; 
@@ -42,6 +45,7 @@ void EgRegAnalyzer::InitBranches(){
  TBranch*b_ele;
  TBranch*b_mc;
  TBranch*b_mean;
+ TBranch*b_sigma;
  TBranch*b_sc;
  TBranch*b_ss;
  TBranch*b_invTar;
@@ -49,14 +53,19 @@ void EgRegAnalyzer::InitBranches(){
  tree->SetBranchAddress("ele",&eleObject,&b_ele);
  tree->SetBranchAddress("mc",&mcObject,&b_mc);
  tree->SetBranchAddress("mean",&mean,&b_mean);
+ tree->SetBranchAddress("sigma",&sigma,&b_sigma);
  tree->SetBranchAddress("sc",&scObject,&b_sc);
  tree->SetBranchAddress("ssFull",&ssObject,&b_ss);
  tree->SetBranchAddress("invTar",&invTar,&b_invTar);
 }//end InitBranches
 
 //-----Plot 1-dimensional histogram-----//
-void EgRegAnalyzer::Plot1DHist(VarType var,TString step,TString saveAddendum = "")
+void EgRegAnalyzer::Plot1DHist(VarType var,TString step)
 {
+ if(!CheckStatus(file,fileFriend,tree,treeFriend)){
+  cout << "Files and/or trees not loaded" << endl;
+  return;
+ }
  gStyle->SetOptStat(0);
  VariableHandler*variable = new VariableHandler(var);
  std::vector<float> vec = variable->GetRangeLimits();
@@ -75,10 +84,12 @@ void EgRegAnalyzer::Plot1DHist(VarType var,TString step,TString saveAddendum = "
  for(Long64_t j=0;j<nEvents;j++){
   counter(j,nEvents,"Loading events");
   tree->GetEntry(j);         
-  if(var==ETA)               fill = mcObject.eta;
+  if     (var==ETA)          fill = mcObject.eta;
   else if(var==ABS_ETA)      fill = abs(mcObject.eta);
   else if(var==INV_TAR)      fill = invTar;
   else if(var==INV_TAR_CORR) fill = invTar*mean;
+  else if(var==MEAN)         fill = mean;
+  else if(var==SIGMA)        fill = sigma;
   else {
    cout << "Variable not found" << endl;
    return;
@@ -89,9 +100,8 @@ void EgRegAnalyzer::Plot1DHist(VarType var,TString step,TString saveAddendum = "
  TCanvas*canvas = new TCanvas("canvas","",0,0,1000,1000);
  canvas->SetGrid();
  hist->Draw("pe");
- TString saveName = "/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/";
+ TString saveName = plotLocation;
  saveName += variable->GetVarName();
- saveName += saveAddendum;
  saveName += "_"+step;
  saveName += ".png";
  canvas->SaveAs(saveName);
@@ -137,6 +147,7 @@ void EgRegAnalyzer::Plot2DHist(VarType varX,VarType varY,TString step)
   else if(varX==INV_TAR)      fillX = invTar;
   else if(varX==INV_TAR_CORR) fillX = invTar*mean;
   else if(varX==MEAN)         fillX = mean;
+  else if(varX==SIGMA)        fillX = sigma;
   else {
    cout << "Variable not found" << endl;
    return;
@@ -147,6 +158,7 @@ void EgRegAnalyzer::Plot2DHist(VarType varX,VarType varY,TString step)
   else if(varY==INV_TAR)      fillY = invTar;
   else if(varY==INV_TAR_CORR) fillY = invTar*mean;
   else if(varY==MEAN)         fillY = mean;
+  else if(varY==SIGMA)        fillY = sigma;
   else {
    cout << "Variable not found" << endl;
    return;
@@ -154,7 +166,6 @@ void EgRegAnalyzer::Plot2DHist(VarType varX,VarType varY,TString step)
 
   hist->Fill(fillX,fillY);
  }//end event loop
- TString saveName = "/home/hep/wrtabb/git/DY-Analysis/plots/Egamma/";
 
  TCanvas*canvas=new TCanvas("canvas","",1000,1000);
  canvas->SetGrid();
@@ -168,26 +179,27 @@ void EgRegAnalyzer::Plot2DHist(VarType varX,VarType varY,TString step)
  palette->SetX2NDC(0.89);
  palette->SetY2NDC(0.9);
 
- TString save2D = saveName;
+ TString save2D = plotLocation;
  save2D += "h2D_";
  save2D += variableX->GetVarName() + "_";
- save2D += variableY->GetVarName() + step;
+ save2D += variableY->GetVarName() + "_" + step;
  save2D += ".png";
  canvas->SaveAs(save2D);
 
  TProfile*profile = (TProfile*)hist->ProfileX(); 
- profile->GetYaxis()->SetRangeUser(0,2);
+ profile->GetYaxis()->SetRangeUser(variableY->GetLowRange(),variableY->GetHighRange());
  profile->SetMarkerStyle(20);
  profile->GetXaxis()->SetTitle(xAxisTitle);
  profile->GetYaxis()->SetTitle(yAxisTitle);
+ profile->GetYaxis()->SetTitleOffset(1.4);
  TCanvas*canvas2=new TCanvas("canvas2","",1000,1000);
  canvas2->SetGrid();
  profile->Draw("pe");
 
- TString saveProf = saveName;
+ TString saveProf = plotLocation;
  saveProf += "hProfile_";
  saveProf += variableX->GetVarName() + "_";
- saveProf += variableY->GetVarName() + step;
+ saveProf += variableY->GetVarName() + "_" + step;
  saveProf += ".png";
  canvas2->SaveAs(saveProf);
 }
@@ -203,3 +215,32 @@ void EgRegAnalyzer::counter(Long64_t i,Long64_t N,TString name)
  return;
 }
 
+bool EgRegAnalyzer::CheckStatus(TFile*file,TFile*fileFriend,TTree*tree,TTree*treeFriend)
+{
+ bool status = true;
+ if(!file){
+  cout << "ERROR: file is undefined!" << endl;
+  status = false;
+ }
+ if(!fileFriend){
+  cout << "ERROR: fileFriend is undefined!" << endl;
+  status = false;
+ }
+ if(!file->IsOpen()){
+  cout << "ERROR: file failed to load!" << endl;
+  status = false;
+ }
+ if(!fileFriend->IsOpen()){
+  cout << "ERROR: fileFriend failed to load!" << endl;
+  status = false;
+ }
+ if(!tree){
+  cout << "ERROR: Tree did not load!" << endl;
+  status = false;
+ }
+ if(!treeFriend){
+  cout << "ERROR: Tree did not load!" << endl;
+  status = false;
+ }
+ return status;
+}

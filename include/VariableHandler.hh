@@ -29,6 +29,11 @@ public:
  float GetHighRange();
  std::vector<float> GetRangeLimits();
 
+ bool InRange(float var);
+ int GetRangeIndex(float var);
+ float GetRangeLeft(float var);
+ float GetRangeRight(float var);
+ 
  TString GetVarName();
  TString GetVarTitle();
  std::vector<float> rangeLimits;

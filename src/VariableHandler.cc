@@ -7,7 +7,8 @@ const TString VariableHandler::varNames[] = {
  "invTar",
  "invTarCorr",
  "mean",
- "sigma"
+ "sigma",
+ "pT"
 };
 const TString VariableHandler::varLatexNames[] = {
  "undefined",
@@ -16,7 +17,8 @@ const TString VariableHandler::varLatexNames[] = {
  "E_{raw}/E_{true}",
  "corrected E_{raw}/E_{true}",
  "mean",
- "#sigma"
+ "#sigma",
+ "p_{T}"
 };
 
 VariableHandler::VariableHandler(VarType varType)
@@ -68,6 +70,15 @@ VariableHandler::VariableHandler(VarType varType)
   float bin = 0.0;
   float dBin = 0.01;
   const int numbins = 50;
+  for(int i=0;i<numbins;i++){
+   rangeLimits.push_back(bin);
+   bin += dBin;
+  }
+ }
+ else if(varType == PT){
+  float bin = 0.0;
+  float dBin = 3.0;
+  const int numbins = 101;
   for(int i=0;i<numbins;i++){
    rangeLimits.push_back(bin);
    bin += dBin;
@@ -137,7 +148,7 @@ float VariableHandler::GetRangeLeft(float var)
 {
  float result = -1e9;
  if(InRange(var)){
-  result=rangeLimits.at(GetRangeIndex(var));
+  result = rangeLimits.at(GetRangeIndex(var));
  }
  return result;
 }

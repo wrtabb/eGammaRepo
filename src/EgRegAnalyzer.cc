@@ -90,6 +90,7 @@ void EgRegAnalyzer::Plot1DHist(VarType var,TString step)
   else if(var==INV_TAR_CORR) fill = invTar*mean;
   else if(var==MEAN)         fill = mean;
   else if(var==SIGMA)        fill = sigma;
+  else if(var==PT)           fill = mcObject.pt;
   else {
    cout << "Variable not found" << endl;
    return;
@@ -148,6 +149,7 @@ void EgRegAnalyzer::Plot2DHist(VarType varX,VarType varY,TString step)
   else if(varX==INV_TAR_CORR) fillX = invTar*mean;
   else if(varX==MEAN)         fillX = mean;
   else if(varX==SIGMA)        fillX = sigma;
+  else if(varX==PT)           fillX = mcObject.pt;
   else {
    cout << "Variable not found" << endl;
    return;
@@ -159,6 +161,7 @@ void EgRegAnalyzer::Plot2DHist(VarType varX,VarType varY,TString step)
   else if(varY==INV_TAR_CORR) fillY = invTar*mean;
   else if(varY==MEAN)         fillY = mean;
   else if(varY==SIGMA)        fillY = sigma;
+  else if(varY==PT)           fillY = mcObject.pt;
   else {
    cout << "Variable not found" << endl;
    return;

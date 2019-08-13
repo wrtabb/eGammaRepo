@@ -9,7 +9,8 @@ enum VarType{
  INV_TAR,
  INV_TAR_CORR,
  MEAN,
- SIGMA
+ SIGMA,
+ PT
 };
 
 class VariableHandler
